@@ -175,3 +175,149 @@ SELECT DEPARTMENT, COUNT(ASSIGNMENT_ID), SUM(HOURS_WORKED), AVG(HOURS_WORKED) FR
 GROUP BY DEPARTMENT
 HAVING SUM(HOURS_WORKED) > 110 AND AVG(HOURS_WORKED) > 38
 ORDER BY AVG(HOURS_WORKED), DEPARTMENT
+
+
+
+--VIEW
+CREATE TABLE Customers (
+CustomerID INT PRIMARY KEY,
+CustomerName VARCHAR (100) NOT NULL,
+City VARCHAR (100),
+Membership VARCHAR (20)
+);
+
+INSERT INTO Customers (CustomerID, CustomerName, City, Membership)
+VALUES
+(101, 'Alice', 'Mumbai', 'Gold'),
+(102, 'Bob', 'Delhi', 'Silver'),
+(103, 'Charlie', 'Pune', 'Gold'),
+(104, 'David', 'Ahmedabad', 'Silver'),
+(105, 'Eva', 'Mumbai', 'Platinum');
+
+CREATE TABLE Orders (
+OrderID INT PRIMARY KEY,
+CustomerID INT NOT NULL,
+Product VARCHAR (100) NOT NULL,
+Category VARCHAR (50),
+Quantity INT NOT NULL,
+Price DECIMAL (10,2) NOT NULL,
+FOREIGN KEY (CustomerID) REFERENCES Customers (CustomerID)
+);
+
+INSERT INTO Orders (OrderID, CustomerID, Product, Category, Quantity, Price)
+VALUES
+(201, 101, 'Laptop', 'Electronics', 1, 70000),
+(202, 101, 'Mouse', 'Electronics', 2, 800),
+(203, 102, 'Chair', 'Furniture', 3, 2500),
+(204, 103, 'Phone', 'Electronics', 1, 45000),
+(205, 104, 'Table', 'Furniture', 2, 6000),
+(206, 105, 'Laptop', 'Electronics', 2, 70000),
+(207, 105, 'Printer', 'Electronics', 1, 12000),
+(208, 103, 'Desk', 'Furniture', 1, 8000);
+
+--1)Create a view named CustomerOrders displaying:
+--Customer Name
+--City
+--Product
+--Category
+--Quantity
+--Price
+CREATE VIEW CUSTOMERORDERS
+AS
+SELECT CustomerName, CITY, PRODUCT, CATEGORY, QUANTITY, PRICE
+FROM CUSTOMERS C JOIN ORDERS O
+ON C.CustomerID = O.CustomerID
+SELECT * FROM CUSTOMERORDERS
+
+--2)Create a view named GoldCustomersOrders that displays all orders placed by gold members.
+CREATE VIEW GoldCustomersOrders
+AS
+SELECT OrderID, O.CustomerID, PRODUCT, Category, Quantity, Price
+FROM CUSTOMERS C RIGHT JOIN ORDERS O
+ON C.CustomerID = O.CustomerID
+WHERE Membership = 'GOLD'
+SELECT * FROM GoldCustomersOrders
+
+--3)Create a view ElectronicOrders displaying only Electronics orders.
+CREATE VIEW ElectronicOrders
+AS
+SELECT OrderID, O.CustomerID, PRODUCT, Category, Quantity, Price
+FROM CUSTOMERS C RIGHT JOIN ORDERS O
+ON C.CustomerID = O.CustomerID
+WHERE Category = 'ELECTRONICS'
+SELECT * FROM ElectronicOrders
+--4)Create a view CustomerPurchaseSummary showing the total purchase amount for each customer.
+--(Purchase Amount = Quantity * Price)
+CREATE VIEW CustomerPurchaseSummary
+AS
+SELECT C.CustomerName, SUM(Quantity*Price) AS PURCHASE_AMOUNT
+FROM CUSTOMERS C  JOIN ORDERS O
+ON C.CustomerID = O.CustomerID
+GROUP BY C.CustomerName
+SELECT * FROM CustomerPurchaseSummary
+
+--5) Create a view CustomerOrderCount showing: 
+--• Customer Name 
+--• Number of Orders placed 
+CREATE VIEW CustomerOrderCount AS
+SELECT c.CustomerName, COUNT(o.OrderID) AS NumberOfOrders
+FROM Customers c JOIN Orders o ON c.CustomerID = o.CustomerID
+GROUP BY c.CustomerName;
+
+--6) Create a view CategorySales displaying: 
+--• Category 
+--• Number of Orders 
+--• Total quantity sold 
+CREATE VIEW CategorySales AS
+SELECT o.Category, COUNT(o.OrderID) AS NumberOfOrders, SUM(o.Quantity) AS TotalQuantitySold
+FROM Orders o
+GROUP BY o.Category;
+
+--7) Create a view AmountDetails displaying: 
+--• Membership Type 
+--• Average purchase amount per order  
+CREATE VIEW AmountDetails AS
+SELECT c.Membership, AVG(o.Quantity * o.Price) AS AvgPurchaseAmountPerOrder
+FROM Customers c
+JOIN Orders o ON c.CustomerID = o.CustomerID
+GROUP BY c.Membership;
+
+--8) Create a view CitySales displaying: 
+--• City 
+--• Total Customers who placed orders 
+--• Total purchase amount 
+CREATE VIEW CitySales AS
+SELECT c.City,
+       COUNT(DISTINCT c.CustomerID) AS TotalCustomers,
+       SUM(o.Quantity * o.Price) AS TotalPurchaseAmount
+FROM Customers c
+JOIN Orders o ON c.CustomerID = o.CustomerID
+GROUP BY c.City;
+
+--9) Create a view CustomerSales displaying: 
+--• Customer Name 
+--• Membership 
+--• Total quantity purchased 
+--• Total amount spent 
+CREATE VIEW CustomerSales AS
+SELECT c.CustomerName,
+       c.Membership,
+       SUM(o.Quantity) AS TotalQuantityPurchased,
+       SUM(o.Quantity * o.Price) AS TotalAmountSpent
+FROM Customers c
+JOIN Orders o ON c.CustomerID = o.CustomerID
+GROUP BY c.CustomerName, c.Membership;
+
+--10) Create a view CustomerMembership displaying: 
+--• Category 
+--• Membership Type 
+--• Total sales 
+--• Average quantity purchased
+CREATE VIEW CustomerMembership AS
+SELECT o.Category,
+       c.Membership,
+       SUM(o.Quantity * o.Price) AS TotalSales,
+       AVG(o.Quantity) AS AvgQuantityPurchased
+FROM Customers c
+JOIN Orders o ON c.CustomerID = o.CustomerID
+GROUP BY o.Category, c.Membership;
