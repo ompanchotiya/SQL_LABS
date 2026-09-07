@@ -109,17 +109,52 @@ SELECT MAX(RATING) FROM MOVIERATINGSDURATION
 SELECT (YEAR(GETDATE()) - RELEASEYEAR) AS YEARDIFF FROM MOVIEDETAILS
 --13. Find the languages in which movies have an average rating of greater than 8.0. Display the language
 --and the average rating.
+SELECT LANGUAGE, AVG(RATING) FROM MOVIERATINGSDURATION
+WHERE RATING > 8
+GROUP BY LANGUAGE
 --14. Retrieve the minimum, maximum, and average movie duration for each language in the
 --MovieRatingsDuration table, but display only those languages where the average rating is greater than
 --7.5.
+SELECT LANGUAGE, MIN(DURATIONMIN), MAX(DURATIONMIN), AVG(DURATIONMIN) FROM MOVIERATINGSDURATION
+GROUP BY LANGUAGE
+HAVING AVG(RATING) > 7.5
 --15. Find the titles of movies whose budget is higher than the average budget of all movies.(Do not use
 --JOINS)
+SELECT TITLE FROM MOVIEDETAILS
+WHERE MOVIEID IN (
+      SELECT MOVIEID FROM MOVIEFINANCIALS
+      WHERE BUDGETUSD > (
+            SELECT AVG(BUDGETUSD) FROM MOVIEFINANCIALS
+      )
+)
 --16. Find the titles of movies that have a box office revenue greater than the average box office revenue of
 --all movies.
+SELECT TITLE FROM MOVIEDETAILS
+WHERE MOVIEID IN (
+      SELECT MOVIEID FROM MOVIEFINANCIALS
+      WHERE BOXOFFICEUSD > (
+            SELECT AVG(BOXOFFICEUSD) FROM MOVIEFINANCIALS
+      )
+)
 --17. Create a view with Rating, Language and Country columns with no data and named it MovieReview.
+CREATE VIEW MOVIEREVIEW AS
+SELECT RATING, LANGUAGE, COUNTRY FROM MOVIERATINGSDURATION
 --18. List all movies that have the same director but different genres, displaying the director’s name, both
 --movie titles, and their respective genres.
+SELECT M1.DIRECTOR, M1.TITLE AS MOVIE1, M1.GENRE AS GENRE1, M2.TITLE AS MOVIE2, M2.GENRE AS GENRE2
+FROM MOVIEDETAILS M1, MOVIEDETAILS M2
+WHERE M1.DIRECTOR = M2.DIRECTOR AND M1.GENRE != M2.GENRE AND M1.MOVIEID < M2.MOVIEID
 --19. Retrieve the title, director, and box office earnings for all movies that were released after 2010, along
 --with their ratings.
+SELECT D.TITLE, D.DIRECTOR, F.BOXOFFICEUSD, R.RATING
+FROM MOVIEDETAILS D
+JOIN MOVIEFINANCIALS F ON D.MOVIEID = F.MOVIEID
+JOIN MOVIERATINGSDURATION R ON D.MOVIEID = R.MOVIEID
+WHERE D.RELEASEYEAR > 2010;
+
 --20. List all directors and the number of movies they have directed, but only include directors who have
 --directed more than 1 movie.
+SELECT DIRECTOR, COUNT(MOVIEID) AS MOVIECOUNT
+FROM MOVIEDETAILS
+GROUP BY DIRECTOR
+HAVING COUNT(MOVIEID) > 1;
