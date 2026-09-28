@@ -165,6 +165,8 @@ SELECT DBO.FN_SQUARE_CUBE(5)
 
 
 --From the table EMPLOYEE perform the following queries:
+
+
 --Part – C:
 --10. Implement scalar function to return employee full details using EID.
 CREATE FUNCTION FN_ALLDETAIL
